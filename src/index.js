@@ -1,13 +1,40 @@
 import 'dotenv/config';
+import 'cross-fetch/polyfill';
+import ApolloClient, { gql } from 'apollo-boost';
 
-const userCredentials = { firstname: 'Robin' };
-const userDetails = { nationality: 'German' };
+const client = new ApolloClient ({
+  uri: 'https://acs-ci-svcs.eastus.cloudapp.azure.com/scarif/api/v1/graphql',
+  request: operation => {
+      operation.setContext({
+        headers: {
+          authorization: `Bearer ${process.env.ACS_TOKEN}`
+        }
+      });
+  },
+});
 
-const user = {
-  ...userCredentials,
-  ...userDetails,
+const GET_ORGANIZATION = gql`
+query GetOrg {
+  organization(orgId: "81c7a0ec-fe56-e911-b047-00155d961952") {
+    id,
+    name: tenantName,
+    sites {
+      siteName
+    }
+  }
+}
+`;
+
+function GetOrg() {
+  client.query({
+     query: GET_ORGANIZATION,
+     fetchPolicy: 'network-only'
+  }).then(console.log)
 };
 
-console.log(user);
+// calling the method
+GetOrg();
 
-console.log(process.env.SOME_ENV_VARIABLE);
+
+
+
